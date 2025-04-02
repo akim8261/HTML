@@ -1,0 +1,150 @@
+import React, { useState, useEffect, useMemo } from "react";
+
+const symbols = ["♥️", "♦️", "♣️", "♠️", "★", "☆", "■", "□"];
+
+const shuffleCards = () => {
+  const selectedSymbols = symbols.sort(() => 0.5 - Math.random()).slice(0, 4);
+  const cards = [...selectedSymbols, ...selectedSymbols]
+    .sort(() => 0.5 - Math.random())
+    .map((symbol, index) => ({
+      id: index,
+      symbol,
+      isOpen: false,
+      isMatched: false,
+    }));
+  return cards;
+};
+
+const MemoryGame = () => {
+  const [cards, setCards] = useState(shuffleCards());
+  const [openedCards, setOpenedCards] = useState([]);
+  const [moves, setMoves] = useState(0);
+  const [isChecking, setIsChecking] = useState(false);
+  const [won, setWon] = useState(false);
+
+  useEffect(() => {
+    if (openedCards.length === 2) {
+      setIsChecking(true);
+      setTimeout(() => {
+        const [first, second] = openedCards;
+        if (cards[first].symbol === cards[second].symbol) {
+          setCards((prev) =>
+            prev.map((card, index) =>
+              index === first || index === second ? { ...card, isMatched: true } : card
+            )
+          );
+        } else {
+          setCards((prev) =>
+            prev.map((card, index) =>
+              index === first || index === second ? { ...card, isOpen: false } : card
+            )
+          );
+        }
+        setOpenedCards([]);
+        setIsChecking(false);
+      }, 1000);
+    }
+  }, [openedCards, cards]);
+
+  useEffect(() => {
+    if (cards.filter((card) => card.isMatched).length === 4) {
+      setWon(true);
+    }
+  }, [cards]);
+
+  const handleCardClick = (index) => {
+    if (isChecking || openedCards.includes(index) || cards[index].isMatched || cards[index].isOpen) {
+      return;
+    }
+    setCards((prev) =>
+      prev.map((card, i) => (i === index ? { ...card, isOpen: true } : card))
+    );
+    setOpenedCards((prev) => [...prev, index]);
+    setMoves((prev) => prev + 1);
+  };
+
+  const handleRestart = () => {
+    setCards(shuffleCards());
+    setOpenedCards([]);
+    setMoves(0);
+    setIsChecking(false);
+    setWon(false);
+  };
+
+  return (
+    <div style={styles.container}>
+      <h1 style={styles.title}>Карточки на память</h1>
+      <p style={styles.moves}>Ходы: {moves}</p>
+      <div style={styles.grid}>
+        {cards.map((card, index) => (
+          <button
+            key={card.id}
+            onClick={() => handleCardClick(index)}
+            style={{
+              ...styles.card,
+              backgroundColor: card.isOpen || card.isMatched ? "#fff" : "#333",
+              cursor: card.isOpen || card.isMatched || isChecking ? "default" : "pointer",
+            }}
+            disabled={isChecking}
+          >
+            {card.isOpen || card.isMatched ? card.symbol : "?"}
+          </button>
+        ))}
+      </div>
+      {won && <h2 style={styles.winMessage}>Вы выиграли! 🎉</h2>}
+      <button onClick={handleRestart} style={styles.restartButton}>Заново</button>
+    </div>
+  );
+};
+
+const styles = {
+  container: {
+    textAlign: "center",
+    padding: "20px",
+    backgroundColor: "#282c34",
+    minHeight: "100vh",
+    color: "white",
+  },
+  title: {
+    fontSize: "2rem",
+    marginBottom: "10px",
+  },
+  moves: {
+    fontSize: "1.2rem",
+    marginBottom: "20px",
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 80px)",
+    gap: "10px",
+    justifyContent: "center",
+  },
+  card: {
+    width: "80px",
+    height: "80px",
+    fontSize: "2rem",
+    textAlign: "center",
+    lineHeight: "80px",
+    borderRadius: "10px",
+    border: "none",
+    backgroundColor: "#333",
+    color: "#fff",
+  },
+  winMessage: {
+    fontSize: "1.5rem",
+    marginTop: "20px",
+    color: "#FFD700",
+  },
+  restartButton: {
+    marginTop: "20px",
+    padding: "10px 20px",
+    fontSize: "1rem",
+    borderRadius: "5px",
+    border: "none",
+    backgroundColor: "#61dafb",
+    color: "#000",
+    cursor: "pointer",
+  },
+};
+
+export default MemoryGame;
