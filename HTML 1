@@ -1,0 +1,72 @@
+import React, { useState, useEffect } from "react";
+
+const Timer = () => {
+  const [time, setTime] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+
+  useEffect(() => {
+    let interval;
+    if (isRunning) {
+      interval = setInterval(() => {
+        setTime((prevTime) => prevTime + 1);
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [isRunning]);
+
+  const formatTime = (seconds) => {
+    const hours = Math.floor(seconds / 3600)
+      .toString()
+      .padStart(2, "0");
+    const minutes = Math.floor((seconds % 3600) / 60)
+      .toString()
+      .padStart(2, "0");
+    const secs = (seconds % 60).toString().padStart(2, "0");
+    return `${hours}:${minutes}:${secs}`;
+  };
+
+  return (
+    <div style={styles.container}>
+      <h1 style={styles.timer}>{formatTime(time)}</h1>
+      <button onClick={() => setIsRunning(!isRunning)} style={styles.button}>
+        {isRunning ? "Стоп" : "Старт"}
+      </button>
+      {time > 0 && (
+        <button onClick={() => setTime(0)} style={styles.button}>
+          Сброс
+        </button>
+      )}
+    </div>
+  );
+};
+
+const styles = {
+  container: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100vh",
+    backgroundColor: "#282c34",
+    color: "#fff",
+    fontFamily: "Arial, sans-serif",
+  },
+  timer: {
+    fontSize: "5rem",
+    marginBottom: "20px",
+  },
+  button: {
+    fontSize: "1.5rem",
+    padding: "10px 20px",
+    margin: "10px",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    backgroundColor: "#61dafb",
+    color: "#000",
+  },
+};
+
+export default Timer;
